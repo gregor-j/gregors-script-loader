@@ -1,2 +1,3 @@
-# gregors-script-loader
-DRAFT: A loader for script libraries with only busybox requirements.
+# Gregors Script Library
+
+**THIS IS WORK IN PROGRESS!** Come back in a few days.
