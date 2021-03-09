@@ -1,79 +1,61 @@
-#!/usr/bin/env sh
-
 ################################################################################
 # Gregor's script library                                                      #
 # FILE: core/loader.function                                                   #
 ################################################################################
 
 # ERROR CODES ##################################################################
-RETURN_OK=0
-RETURN_NOT_OK=1
-ERR_NOT_SET=128
-ERR_NOT_FOUND=129
-ERR_PERMISSION=130
-ERR_UNKNOWN=131
-# NEWLINE CHARACTER ############################################################
-if [ -z "$BASH" ]; then
-    NL='\n'
-else
-    NL=$'\n'
-fi
+export RETURN_OK=0
+export RETURN_NOT_OK=1
+export ERR_NOT_SET=128
+export ERR_NOT_FOUND=129
+export ERR_PERMISSION=130
+export ERR_UNKNOWN=131
 # ECHO TO STDERR ###############################################################
 # Print the text to STDERR instead of STDOUT.
 # param 1 (string) The text to print to STDERR.
-function echo_error() {
-  (>&2 echo "$1")
+err() {
+    echo "${1}" >&2
 }
-# GSL PATH #####################################################################
-GSL_SOURCE="$_"
-GSL_BASE=$( cd "${GSL_SOURCE%/*}/../" && pwd )
-if [ "${GSL_SOURCE}" = "$0" ]; then
-    echo_error "ERROR: This script has to be sourced, not executed!"
-    echo_error "Usage: . ${GSL_BASE}/core/${GSL_SOURCE##*/}"
-    exit $RETURN_NOT_OK
+# SCRIPT LIBRARY ###############################################################
+if [ -z "${SCRIPT_LIBRARY}" ]; then
+    err "ERROR: SCRIPT_LIBRARY variable not defined!"
+    exit $ERR_NOT_SET # Exit should be a privilege of the loader!
+elif [ -d "${SCRIPT_LIBRARY}" ]; then
+    SCRIPT_LIBRARY="${SCRIPT_LIBRARY%/}"
+else
+    err "ERROR: ${SCRIPT_LIBRARY} doesn't exist!"
+    exit $ERR_NOT_FOUND
 fi
-GSL_LIBRARY="${GSL_BASE}/lib"
 # GSL LOADER ###################################################################
-GSL_LOADED="${GSL_BASE}/core/${GSL_SOURCE##*/}"
-
+# Variable holding a list of loaded scripts.
+GSL_LOADED="loader"
+# Load a script from the library.
+# param 1 Name of the script from the library.
+load() {
+    SCRIPT=""
+    for SCRIPT in "$@"; do
+        SCRIPT="${SCRIPT%/}"
+        SCRIPT="${SCRIPT#/}"
+        # shellcheck source=/dev/null
+        . "${SCRIPT_LIBRARY}/${SCRIPT}.function" || {
+            RETVAL=$?
+        } && {
+            isloaded "${SCRIPT}" || {
+                GSL_LOADED=$(printf '%s\n' "$GSL_LOADED" "${SCRIPT}")
+            }
+        }
+    done
+    unset SCRIPT
+    return ${RETVAL:-$RETURN_OK}
+}
 # List all loaded scripts.
-# output (string) List of loaded scripts, one per line.
-function list_loaded() {
+loaded() {
     echo "${GSL_LOADED}"
 }
-
-# Load a script from Gregor's script library.
-# param 1 (string) Name of the .function file to load from the library.
-function load() {
-    local LIB=""
-    while [ "${1}" ]; do
-        # Remove heading and trailing slash and add library path.
-        LIB="${1%/}"
-        LIB="${GSL_LIBRARY}/${LIB#/}"
-        if GSL/is_loaded "${LIB}"; then
-            :
-        else
-            if [ -f "${LIB}" ]; then
-                GSL_LOADED="${GSL_LOADED}${NL}${LIB}"
-                builtin source "${LIB}"
-            else
-                echo_error "ERROR: ${LIB} not found!"
-                return $ERR_NOT_FOUND
-            fi
-        fi
-        shift # next parameter
-    done
-}
-
-# GSL internal function: Is the given script already loaded?
-# param 1 (string) The script name.
-# return 1 on hit 0 on miss
-function GSL/is_loaded() {
-    local LOADED=""
-    list_loaded | while read LOADED; do
-        if [ "${LOADED}" == "${1}" ]; then
-            return $RETURN_OK;
-        fi
-    done
-    return $RETURN_NOT_OK
+# Determine whether a script has been loaded.
+# param 1 Name of the script to check for.
+isloaded() {
+    SCRIPT="${1%/}"
+    SCRIPT="${SCRIPT#/}"
+    loaded | grep -qx "${SCRIPT}"
 }
