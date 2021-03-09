@@ -16,7 +16,7 @@ git clone https://github.com/gregor-j/gregors-script-library.git "/path/to/grego
 Add the loader to your shell init script, like `/etc/bash.bashrc`.
 
 ```shell
-export SCRIPT_LIBRARY="/path/to/gregors-script-library/lib"
+export SCRIPT_LIBRARY="/path/to/gregors-script-library"
 . "${SCRIPT_LIBRARY}/loader.function"
 ```
 
