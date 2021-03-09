@@ -1,0 +1,61 @@
+################################################################################
+# Gregor's script library                                                      #
+# FILE: core/loader.function                                                   #
+################################################################################
+
+# ERROR CODES ##################################################################
+export RETURN_OK=0
+export RETURN_NOT_OK=1
+export ERR_NOT_SET=128
+export ERR_NOT_FOUND=129
+export ERR_PERMISSION=130
+export ERR_UNKNOWN=131
+# ECHO TO STDERR ###############################################################
+# Print the text to STDERR instead of STDOUT.
+# param 1 (string) The text to print to STDERR.
+err() {
+    echo "${1}" >&2
+}
+# SCRIPT LIBRARY ###############################################################
+if [ -z "${SCRIPT_LIBRARY}" ]; then
+    err "ERROR: SCRIPT_LIBRARY variable not defined!"
+    exit $ERR_NOT_SET # Exit should be a privilege of the loader!
+elif [ -d "${SCRIPT_LIBRARY}" ]; then
+    SCRIPT_LIBRARY="${SCRIPT_LIBRARY%/}"
+else
+    err "ERROR: ${SCRIPT_LIBRARY} doesn't exist!"
+    exit $ERR_NOT_FOUND
+fi
+# GSL LOADER ###################################################################
+# Variable holding a list of loaded scripts.
+GSL_LOADED="loader"
+# Load a script from the library.
+# param 1 Name of the script from the library.
+load() {
+    SCRIPT=""
+    for SCRIPT in "$@"; do
+        SCRIPT="${SCRIPT%/}"
+        SCRIPT="${SCRIPT#/}"
+        # shellcheck source=/dev/null
+        . "${SCRIPT_LIBRARY}/${SCRIPT}.function" || {
+            RETVAL=$?
+        } && {
+            isloaded "${SCRIPT}" || {
+                GSL_LOADED=$(printf '%s\n' "$GSL_LOADED" "${SCRIPT}")
+            }
+        }
+    done
+    unset SCRIPT
+    return ${RETVAL:-$RETURN_OK}
+}
+# List all loaded scripts.
+loaded() {
+    echo "${GSL_LOADED}"
+}
+# Determine whether a script has been loaded.
+# param 1 Name of the script to check for.
+isloaded() {
+    SCRIPT="${1%/}"
+    SCRIPT="${SCRIPT#/}"
+    loaded | grep -qx "${SCRIPT}"
+}
