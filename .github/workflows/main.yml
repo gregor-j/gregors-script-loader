@@ -31,4 +31,6 @@ jobs:
         uses: ludeeus/action-shellcheck@master
         env:
           SHELLCHECK_OPTS: --shell=dash
+        with:
+          additional_files: '*.function'
     
