@@ -26,11 +26,26 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Runs a single command using the runners shell
+      # Run the shellcheck in dash flavor.
       - name: run shellcheck dash
         uses: ludeeus/action-shellcheck@master
         env:
           SHELLCHECK_OPTS: --shell=dash
         with:
           additional_files: '*.function'
-    
+
+      # Run the shellcheck in bash flavor.
+      - name: run shellcheck bash
+        uses: ludeeus/action-shellcheck@master
+        env:
+          SHELLCHECK_OPTS: --shell=bash
+        with:
+          additional_files: '*.function'
+
+      # Run the shellcheck in sh flavor.
+      - name: run shellcheck sh
+        uses: ludeeus/action-shellcheck@master
+        env:
+          SHELLCHECK_OPTS: --shell=sh
+        with:
+          additional_files: '*.function'
