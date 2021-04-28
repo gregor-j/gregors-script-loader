@@ -28,7 +28,7 @@ else
 fi
 # GSL LOADER ###################################################################
 # Variable holding a list of loaded scripts.
-GSL_LOADED="loader"
+GSL_LOADED="${GSL_LOADED:-loader}"
 # Load a script from the library.
 # param 1 Name of the script from the library.
 load() {
@@ -36,13 +36,12 @@ load() {
     for SCRIPT in "$@"; do
         SCRIPT="${SCRIPT%/}"
         SCRIPT="${SCRIPT#/}"
+        isloaded "${SCRIPT}" || {
+            GSL_LOADED=$(printf '%s\n' "$GSL_LOADED" "${SCRIPT}")
+        }
         # shellcheck source=/dev/null
         . "${SCRIPT_LIBRARY}/${SCRIPT}.function" || {
             RETVAL=$?
-        } && {
-            isloaded "${SCRIPT}" || {
-                GSL_LOADED=$(printf '%s\n' "$GSL_LOADED" "${SCRIPT}")
-            }
         }
     done
     unset SCRIPT
