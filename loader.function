@@ -1,5 +1,5 @@
 ################################################################################
-# Gregor's script library                                                      #
+# shell script library                                                         #
 # FILE: loader.function                                                        #
 ################################################################################
 
@@ -16,7 +16,7 @@ export ERR_UNKNOWN=131
 err() {
     echo "${1}" >&2
 }
-# SCRIPT LIBRARY ###############################################################
+# SCRIPT LIBRARY VARIABLE ######################################################
 if [ -z "${SCRIPT_LIBRARY}" ]; then
     err "ERROR: SCRIPT_LIBRARY variable not defined!"
     exit $ERR_NOT_SET # Exit should be a privilege of the loader!
@@ -26,18 +26,24 @@ else
     err "ERROR: ${SCRIPT_LIBRARY} doesn't exist!"
     exit $ERR_NOT_FOUND
 fi
-# GSL LOADER ###################################################################
+# LOADED SCRIPTS VARIABLE ######################################################
 # Variable holding a list of loaded scripts.
-GSL_LOADED="${GSL_LOADED:-loader}"
+SSL_LOADED="${SSL_LOADED:-loader}"
+
+# LOADER #######################################################################
 # Load a script from the library.
-# param 1 Name of the script from the library.
+#
+# Usage: load <name> [<name> [...]]
+#
+# Example: load common
+#
 load() {
     SCRIPT=""
     for SCRIPT in "$@"; do
         SCRIPT="${SCRIPT%/}"
         SCRIPT="${SCRIPT#/}"
         isloaded "${SCRIPT}" || {
-            GSL_LOADED=$(printf '%s\n' "$GSL_LOADED" "${SCRIPT}")
+            SSL_LOADED=$(printf '%s\n' "${SSL_LOADED}" "${SCRIPT}")
         }
         # shellcheck source=/dev/null
         . "${SCRIPT_LIBRARY}/${SCRIPT}.function" || {
@@ -45,11 +51,11 @@ load() {
         }
     done
     unset SCRIPT
-    return ${RETVAL:-$RETURN_OK}
+    return ${RETVAL:-${RETURN_OK}}
 }
 # List all loaded scripts.
 loaded() {
-    echo "${GSL_LOADED}"
+    echo "${SSL_LOADED}"
 }
 # Determine whether a script has been loaded.
 # param 1 Name of the script to check for.
