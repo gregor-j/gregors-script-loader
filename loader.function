@@ -48,6 +48,7 @@ load() {
         # shellcheck source=/dev/null
         . "${SCRIPT_LIBRARY}/${SCRIPT}.function" || {
             RETVAL=$?
+            SSL_LOADED=$(printf '%s\n' "${SSL_LOADED}" | sed '$ d')
         }
     done
     unset SCRIPT
