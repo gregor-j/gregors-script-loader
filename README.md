@@ -22,4 +22,5 @@ Now load some scripts from the library...
 
 ```shell
 load common
+echo -e "$(color green)hello $(color bold red on yellow)world$(color reset)!"
 ```
