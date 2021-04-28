@@ -1,4 +1,4 @@
-load || exit 1
+loaded > /dev/null || exit 1
 ################################################################################
 # Gregor's script library                                                      #
 # FILE: common.function                                                        #
