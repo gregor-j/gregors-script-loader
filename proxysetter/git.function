@@ -1,0 +1,42 @@
+################################################################################
+# shell script library                                                         #
+# FILE: proxysetter/git.function                                               #
+################################################################################
+SLPRXY_register_backend "SLPRXY_git_enable" "SLPRXY_git_disable" "SLPRXY_git_status"
+
+SLPRXY_git_enable() {
+    git config --global --replace-all http.proxy "${1}"
+    SLPRXY_git_retval $?
+    return $?
+}
+
+SLPRXY_git_disable() {
+    git config --global --unset-all http.proxy
+    SLPRXY_git_retval $?
+    return $?
+}
+
+SLPRXY_git_status() {
+    echo -e "== $(color blue)git$(color reset) =="
+    proxy=$(git config --global --get-all http.proxy)
+    if [ "${proxy}" == "${1}" ]; then
+        echo -e "$(color green)OK$(color reset)"
+    else
+        echo -e "$(color red)${proxy:-not set}$(color reset)"
+    fi
+    return ${RETURN_OK}
+}
+
+SLPRXY_git_retval() {
+    RETVAL=${1}
+    case ${RETVAL} in
+        1) err "the section or key is invalid" ;;
+        2) err "no section or name was provided" ;;
+        3) err "the config file is invalid" ;;
+        4) err "the config file cannot be written" ;;
+        5) err "you try to set an option for which multiple lines match" ;;
+        6) err "you try to use an invalid regexp" ;;
+        *) RETVAL=${RETURN_OK} ;;
+    esac
+    return ${RETVAL}
+}
