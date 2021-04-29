@@ -10,7 +10,7 @@ proxysetter() {
             proxysetter-config "$@" || return $?
             ;;
         "enable")
-            SLPRXY_backend "${SLPRXY_BACKENDS_DISABLE}" || return $?
+            SLPRXY_backend "${SLPRXY_BACKENDS_DISABLE}" &> /dev/null || :
             SLPRXY_backend "${SLPRXY_BACKENDS_ENABLE}" || return $?
             ;;
         "disable")
