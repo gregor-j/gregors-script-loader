@@ -17,13 +17,15 @@ SLPRXY_git_disable() {
 }
 
 SLPRXY_git_status() {
-    echo -e "== $(color blue)git$(color reset) =="
+    printf '== %bgit%b ==\n' "$(color blue)" "$(color reset)"
+    printf '%bhttp.proxy%b: ' "$(color yellow)" "$(color reset)"
     proxy=$(git config --global --get-all http.proxy)
-    if [ "${proxy}" == "${1}" ]; then
-        echo -e "$(color green)OK$(color reset)"
+    if [ "${proxy}" = "${1}" ]; then
+        printf '%bOK%b\n' "$(color green)" "$(color reset)"
     else
-        echo -e "$(color red)${proxy:-not set}$(color reset)"
+        printf '%b%s%b\n' "$(color red)" "${proxy:-not set}" "$(color reset)"
     fi
+    # shellcheck disable=SC2086
     return ${RETURN_OK}
 }
 
@@ -38,5 +40,6 @@ SLPRXY_git_retval() {
         6) err "you try to use an invalid regexp" ;;
         *) RETVAL=${RETURN_OK} ;;
     esac
+    # shellcheck disable=SC2086
     return ${RETVAL}
 }

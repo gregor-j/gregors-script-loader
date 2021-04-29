@@ -10,11 +10,11 @@ export ERR_NOT_SET=128
 export ERR_NOT_FOUND=129
 export ERR_PERMISSION=130
 export ERR_UNKNOWN=131
-# ECHO TO STDERR ###############################################################
+# PRINT TO STDERR ##############################################################
 # Print the text to STDERR instead of STDOUT.
 # param 1 (string) The text to print to STDERR.
 err() {
-    echo "${1}" >&2
+    printf '\033[31m%s\033[0m\n' "${1}" >&2
 }
 # SCRIPT LIBRARY VARIABLE ######################################################
 if [ -z "${SCRIPT_LIBRARY}" ]; then
@@ -56,7 +56,7 @@ load() {
 }
 # List all loaded scripts.
 loaded() {
-    echo "${SSL_LOADED}"
+    printf '%s\n' "${SSL_LOADED}"
 }
 # Determine whether a script has been loaded.
 # param 1 Name of the script to check for.

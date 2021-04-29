@@ -7,10 +7,10 @@ load proxysetter/backend-registry proxysetter/config proxysetter/env
 proxysetter() {
     case "${1}" in
         "config")
-            proxysetter-config "$@" || return $?
+            proxysetter_config "$@" || return $?
             ;;
         "enable")
-            SLPRXY_backend "${SLPRXY_BACKENDS_DISABLE}" &> /dev/null || :
+            SLPRXY_backend "${SLPRXY_BACKENDS_DISABLE}" > /dev/null 2>&1 || :
             SLPRXY_backend "${SLPRXY_BACKENDS_ENABLE}" || return $?
             ;;
         "disable")
@@ -21,8 +21,10 @@ proxysetter() {
             ;;
         *)
             err "Unknown action!"
+            # shellcheck disable=SC2086
             return ${RETURN_NOT_OK}
             ;;
     esac
+    # shellcheck disable=SC2086
     return ${RETURN_OK}
 }

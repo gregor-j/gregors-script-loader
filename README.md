@@ -27,5 +27,5 @@ Now load some scripts from the library...
 
 ```shell
 load common
-echo -e "$(color green)hello $(color bold red on yellow)world$(color reset)!"
+printf '%bhello%b %bworld%b!\n' "$(color green)" "$(color reset)" "$(color bold red on yellow)" "$(color reset)"
 ```
