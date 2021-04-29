@@ -2,67 +2,27 @@
 # shell script library                                                         #
 # FILE: proxysetter.function                                                   #
 ################################################################################
-SSLPRXY_BACKENDS_ENABLE="${SSLPRXY_BACKENDS_ENABLE}"
-SSLPRXY_BACKENDS_DISABLE="${SSLPRXY_BACKENDS_DISABLE}"
-SSLPRXY_BACKENDS_STATUS="${SSLPRXY_BACKENDS_STATUS}"
-SSLPRXY_CONFIG_HOME="${HOME%/}/.proxysetter"
+load proxysetter/backend-registry proxysetter/config proxysetter/env
 
 proxysetter() {
     case "${1}" in
+        "config")
+            proxysetter-config "$@" || return $?
+            ;;
         "enable")
-            SSLPRXY_backend "${SSLPRXY_BACKENDS_ENABLE}"
+            SLPRXY_backend "${SLPRXY_BACKENDS_DISABLE}" || return $?
+            SLPRXY_backend "${SLPRXY_BACKENDS_ENABLE}" || return $?
             ;;
         "disable")
-            SSLPRXY_backend "${SSLPRXY_BACKENDS_DISABLE}"
+            SLPRXY_backend "${SLPRXY_BACKENDS_DISABLE}" || return $?
             ;;
         "status")
-            SSLPRXY_backend "${SSLPRXY_BACKENDS_STATUS}"
+            SLPRXY_backend "${SLPRXY_BACKENDS_STATUS}" || return $?
             ;;
         *)
             err "Unknown action!"
             return ${RETURN_NOT_OK}
             ;;
     esac
+    return ${RETURN_OK}
 }
-
-SSLPRXY_register_backend() {
-    echo "${SSLPRXY_BACKENDS_ENABLE}" | grep -qx "${1}" || {
-        SSLPRXY_BACKENDS_ENABLE=$(printf '%s\n' "${SSLPRXY_BACKENDS_ENABLE}" "${1}")
-    }
-    echo "${SSLPRXY_BACKENDS_DISABLE}" | grep -qx "${2}" || {
-        SSLPRXY_BACKENDS_DISABLE=$(printf '%s\n' "${SSLPRXY_BACKENDS_DISABLE}" "${2}")
-    }
-    echo "${SSLPRXY_BACKENDS_STATUS}" | grep -qx "${3}" || {
-        SSLPRXY_BACKENDS_STATUS=$(printf '%s\n' "${SSLPRXY_BACKENDS_STATUS}" "${3}")
-    }
-}
-
-SSLPRXY_load() {
-    if [ ! -f "${SSLPRXY_CONFIG_HOME}/default" ]; then
-        err "No proxy configuration found!"
-        return ${ERR_NOT_FOUND}
-    fi
-    if [ "${1}" == "noproxy" ]; then
-        tail -1 "${SSLPRXY_CONFIG_HOME}/default"
-        return $?
-    fi
-    head -1 "${SSLPRXY_CONFIG_HOME}/default"
-    return $?
-}
-
-SSLPRXY_backend() {
-    SSLPRXY_proxy=$(SSLPRXY_load) || return $?
-    SSLPRXY_exlcude=$(SSLPRXY_load noproxy) || return $?
-    backend=""
-    for backend in ${1}; do
-        ${backend} "${SSLPRXY_proxy}" "${SSLPRXY_exlcude}" || {
-            RETVAL=$?
-        }
-    done
-    unset backend
-    unset SSLPRXY_proxy
-    unset SSLPRXY_exlcude
-    return ${RETVAL:-${RETURN_OK}}
-}
-
-load proxysetter/env

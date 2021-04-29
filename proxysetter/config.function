@@ -1,0 +1,51 @@
+################################################################################
+# shell script library                                                         #
+# FILE: proxysetter/config.function                                            #
+################################################################################
+SLPRXY_CONFIG_HOME="${HOME%/}/.proxysetter"
+SLPRXY_CONFIG_DEFAULT="${SLPRXY_CONFIG_HOME}/default"
+
+proxysetter-config() {
+    [ "${1}" == 'config' ] && shift
+    case "${1}" in
+        get)
+            shift
+            proxysetter-config-get "${1}"
+            ;;
+        set )
+            shift
+            proxysetter-config-set "${1}" "${2}"
+            ;;
+        *)
+            err "Unknown action!"
+            return ${RETURN_NOT_OK}
+            ;;
+    esac
+    return $?
+}
+
+proxysetter-config-get() {
+    SLPRXY_cfg_get "${1}" || {
+        [ $? -eq ${ERR_NOT_FOUND} ] && return ${ERR_NOT_FOUND}
+        err "Proxysetter '${1}' config not set!"
+        return ${ERR_NOT_SET}
+    }
+    return ${RETURN_OK}
+}
+
+proxysetter-config-set() {
+    [ -d "${SLPRXY_CONFIG_HOME}" ] || mkdir -p "${SLPRXY_CONFIG_HOME}"
+    [ -f "${SLPRXY_CONFIG_DEFAULT}" ] || touch "${SLPRXY_CONFIG_DEFAULT}"
+    sed -i "/${1}/ d" "${SLPRXY_CONFIG_DEFAULT}" || return $?
+    echo "${1} ${2}" >> "${SLPRXY_CONFIG_DEFAULT}"
+    return $?
+}
+
+SLPRXY_cfg_get() {
+    [ -f "${SLPRXY_CONFIG_DEFAULT}" ] || {
+        err "Proxysetter config file ${SLPRXY_CONFIG_DEFAULT} not found!"
+        return ${ERR_NOT_FOUND}
+    }
+    grep -E "^${1}\ " "${SLPRXY_CONFIG_DEFAULT}" | tail -1 | cut -d " " -f2
+    return $?
+}

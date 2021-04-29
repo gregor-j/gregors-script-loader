@@ -1,0 +1,35 @@
+################################################################################
+# shell script library                                                         #
+# FILE: proxysetter/backend-registry.function                                  #
+################################################################################
+SLPRXY_BACKENDS_ENABLE="${SLPRXY_BACKENDS_ENABLE}"
+SLPRXY_BACKENDS_DISABLE="${SLPRXY_BACKENDS_DISABLE}"
+SLPRXY_BACKENDS_STATUS="${SLPRXY_BACKENDS_STATUS}"
+
+SLPRXY_register_backend() {
+    echo "${SLPRXY_BACKENDS_ENABLE}" | grep -qx "${1}" || {
+        SLPRXY_BACKENDS_ENABLE=$(printf '%s\n' "${SLPRXY_BACKENDS_ENABLE}" "${1}")
+    }
+    echo "${SLPRXY_BACKENDS_DISABLE}" | grep -qx "${2}" || {
+        SLPRXY_BACKENDS_DISABLE=$(printf '%s\n' "${SLPRXY_BACKENDS_DISABLE}" "${2}")
+    }
+    echo "${SLPRXY_BACKENDS_STATUS}" | grep -qx "${3}" || {
+        SLPRXY_BACKENDS_STATUS=$(printf '%s\n' "${SLPRXY_BACKENDS_STATUS}" "${3}")
+    }
+    return ${RETURN_OK}
+}
+
+SLPRXY_backend() {
+    SLPRXY_proxy=$(SLPRXY_cfg_get proxy) || return $?
+    SLPRXY_exlcude=$(SLPRXY_cfg_get exclude) || return $?
+    backend=""
+    for backend in ${1}; do
+        ${backend} "${SLPRXY_proxy}" "${SLPRXY_exlcude}" || {
+            RETVAL=$?
+        }
+    done
+    unset backend
+    unset SLPRXY_proxy
+    unset SLPRXY_exlcude
+    return ${RETVAL:-${RETURN_OK}}
+}
