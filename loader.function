@@ -74,3 +74,44 @@ loaded() {
 isloaded() {
     loaded | grep -qx "${1}"
 }
+# AUTOLOADER ###################################################################
+# Load scripts automatically when loader is loaded.
+#
+# Usage: autoload <name> [<name> [...]]
+#
+# Example: autoload common
+#
+autoload() {
+    SSLAUTOLOAD=""
+    for SSLAUTOLOAD in "$@"; do
+        load "${SSLAUTOLOAD}" && {
+            touch "${SSL_CONFIG_DIR}/autoload"
+            grep -qx "${SSLAUTOLOAD}" "${SSL_CONFIG_DIR}/autoload" || {
+                prntln "${SSLAUTOLOAD}" >> "${SSL_CONFIG_DIR}/autoload"
+            }
+        }
+    done
+    unset SSLAUTOLOAD
+    return $?
+}
+# Remove scripts from being loaded automatically.
+# Usage: nomoreautoload <name>
+nomoreautoload() {
+    grep -qx "${1}" "${SSL_CONFIG_DIR}/autoload" && {
+        sed -i "/^${1}$/d" "${SSL_CONFIG_DIR}/autoload"
+        printf "Removed '%s' from autoloader.\n" "${1}"
+        return ${RETURN_OK}
+    }
+    return ${RETURN_NOT_OK}
+}
+# Load scripts automagically and remove them in case loading fails.
+[ -f "${SSL_CONFIG_DIR}/autoload" ] || {
+    prntln "common" >> "${SSL_CONFIG_DIR}/autoload"
+}
+SSLAUTOLOADSCRIPT=""
+while read -r SSLAUTOLOADSCRIPT; do
+    load "${SSLAUTOLOADSCRIPT}" || {
+        nomoreautoload "${SSLAUTOLOADSCRIPT}"
+    }
+done < "${SSL_CONFIG_DIR}/autoload"
+unset SSLAUTOLOADSCRIPT
