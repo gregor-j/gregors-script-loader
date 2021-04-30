@@ -2,7 +2,7 @@
 # shell script library                                                         #
 # FILE: proxysetter/config.function                                            #
 ################################################################################
-SLPRXY_CONFIG_HOME="${HOME%/}/.proxysetter"
+SLPRXY_CONFIG_HOME="${SSL_CONFIG_DIR}/proxysetter"
 SLPRXY_CONFIG_DEFAULT="${SLPRXY_CONFIG_HOME}/default"
 
 proxysetter_config() {

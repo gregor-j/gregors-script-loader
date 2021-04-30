@@ -16,6 +16,15 @@ export ERR_UNKNOWN=131
 err() {
     printf '\033[31m%s\033[0m\n' "${1}" >&2
 }
+# PRINT WITHOUT INTERPRETATION #################################################
+# Just print the contents all parameters.
+prnt() {
+    printf '%s' "$@"
+}
+# Print the contents of all parameters and append a newline.
+prntln() {
+    printf '%s\n' "$@"
+}
 # SCRIPT LIBRARY VARIABLE ######################################################
 if [ -z "${SCRIPT_LIBRARY}" ]; then
     err "ERROR: SCRIPT_LIBRARY variable not defined!"
@@ -29,7 +38,10 @@ fi
 # LOADED SCRIPTS VARIABLE ######################################################
 # Variable holding a list of loaded scripts.
 SSL_LOADED="${SSL_LOADED:-loader}"
-
+# CONFIGURATION ROOT DIRECTORY #################################################
+# This directory is supposed to contain configuration files for our scripts.
+SSL_CONFIG_DIR="${HOME}/.config/shell-script-library"
+[ -d "${SSL_CONFIG_DIR}" ] || mkdir -p "${SSL_CONFIG_DIR}"
 # LOADER #######################################################################
 # Load a script from the library.
 #
@@ -38,30 +50,27 @@ SSL_LOADED="${SSL_LOADED:-loader}"
 # Example: load common
 #
 load() {
-    SCRIPT=""
-    for SCRIPT in "$@"; do
-        SCRIPT="${SCRIPT%/}"
-        SCRIPT="${SCRIPT#/}"
-        isloaded "${SCRIPT}" || {
-            SSL_LOADED=$(printf '%s\n' "${SSL_LOADED}" "${SCRIPT}")
+    SSLLOAD=""
+    for SSLLOAD in "$@"; do
+        isloaded "${SSLLOAD}" || {
+            SSL_LOADED=$(prntln "${SSL_LOADED}" "${SSLLOAD}")
         }
         # shellcheck source=/dev/null
-        . "${SCRIPT_LIBRARY}/${SCRIPT}.function" || {
-            RETVAL=$?
-            SSL_LOADED=$(printf '%s\n' "${SSL_LOADED}" | sed '$ d')
+        . "${SCRIPT_LIBRARY}/${SSLLOAD}.function" || {
+            SSL_LOADED=$(prntln "${SSL_LOADED}" | sed '$ d')
+            unset SSLLOAD
+            return ${RETURN_NOT_OK}
         }
     done
-    unset SCRIPT
-    return ${RETVAL:-${RETURN_OK}}
+    unset SSLLOAD
+    return ${RETURN_OK}
 }
 # List all loaded scripts.
 loaded() {
-    printf '%s\n' "${SSL_LOADED}"
+    prntln "${SSL_LOADED}"
 }
 # Determine whether a script has been loaded.
 # param 1 Name of the script to check for.
 isloaded() {
-    SCRIPT="${1%/}"
-    SCRIPT="${SCRIPT#/}"
-    loaded | grep -qx "${SCRIPT}"
+    loaded | grep -qx "${1}"
 }
