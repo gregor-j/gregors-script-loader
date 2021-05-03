@@ -19,27 +19,28 @@ SLPRXY_git_disable() {
 SLPRXY_git_status() {
     printf '== %bgit%b ==\n' "$(color blue)" "$(color reset)"
     printf '%bhttp.proxy%b: ' "$(color yellow)" "$(color reset)"
-    proxy=$(git config --global --get-all http.proxy)
-    if [ "${proxy}" = "${1}" ]; then
+    SLPRXY_git_proxy=$(git config --global --get-all http.proxy)
+    if [ "${SLPRXY_git_proxy}" = "${1}" ]; then
         printf '%bOK%b\n' "$(color green)" "$(color reset)"
     else
-        printf '%b%s%b\n' "$(color red)" "${proxy:-not set}" "$(color reset)"
+        printf '%b%s%b\n' "$(color red)" "${SLPRXY_git_proxy:-not set}" "$(color reset)"
     fi
+    unset SLPRXY_git_proxy
     # shellcheck disable=SC2086
     return ${RETURN_OK}
 }
 
 SLPRXY_git_retval() {
-    RETVAL=${1}
-    case ${RETVAL} in
+    SLPRXY_git_retval=${1}
+    case ${SLPRXY_git_retval} in
         1) err "the section or key is invalid" ;;
         2) err "no section or name was provided" ;;
         3) err "the config file is invalid" ;;
         4) err "the config file cannot be written" ;;
         5) err "you try to set an option for which multiple lines match" ;;
         6) err "you try to use an invalid regexp" ;;
-        *) RETVAL=${RETURN_OK} ;;
+        *) SLPRXY_git_retval=${RETURN_OK} ;;
     esac
     # shellcheck disable=SC2086
-    return ${RETVAL}
+    return ${SLPRXY_git_retval}
 }
