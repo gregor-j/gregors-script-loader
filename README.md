@@ -1,6 +1,6 @@
 # Shell Script Library
 
-**THIS IS WORK IN PROGRESS!** Come back in a few days.
+**THIS IS WORK IN PROGRESS!** Come back in a few ~~days~~ months.
 
 These are not executable files but collections of functions that need to be sourced.
 This way it's possible to manipulate variables in the current shell environment.
